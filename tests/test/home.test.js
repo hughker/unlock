@@ -1,4 +1,5 @@
 const url = require('../helpers/url')
+const { clickByText } = require('../helpers/buttons')
 
 describe('Unlock', () => {
   beforeEach(() => {
@@ -11,18 +12,15 @@ describe('Unlock', () => {
   })
 
   it('clicking dashboard takes the user to dashboard page', async () => {
-    const dashboardButton = '//button[text() = "Go to Your Dashboard"]'
     const page = await browser.newPage()
     await page.goto(url('/'))
-    await page.waitForXPath(dashboardButton)
-    const button = (await page.$x(dashboardButton))[0]
-
+    await page.waitForXPath('//h1[text() = "The Web\'s new business model"]')
+    await page.waitFor(200)
     await expect(page).not.toMatch('Creator Dashboard')
-
-    await Promise.all([
+    await clickByText(page, 'Go to Your Dashboard', Promise.all([
       page.waitForNavigation(),
-      button.click(),
-    ])
+      page.waitForXPath('//button[text() = "Create Lock"]'),
+    ]))
     await expect(page).toMatch('Creator Dashboard')
   })
 })
