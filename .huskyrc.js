@@ -1,9 +1,20 @@
 const tasks = tasks => {
-  return tasks
-    .map(task => {
-      return `cd ${__dirname}/${task.path} && ${task.command}`
-    })
-    .join(`&& cd ${__dirname} && `)
+  return (
+    tasks
+      .map(task => {
+        if (task.path) {
+          return `cd ${__dirname}/${task.path} && ${task.command} `
+        } else if (task.paths) {
+          // We need to execute the command in multiple paths
+          return task.paths
+            .map(path => {
+              return `cd ${__dirname}/${path} && ${task.command} `
+            })
+            .join(`&& cd ${__dirname} && `)
+        }
+      })
+      .join(`&& cd ${__dirname} && `) + `&& cd ${__dirname}`
+  )
 }
 
 // If svg files are changed, generate the SVG Components
@@ -19,9 +30,16 @@ const lintStaged = {
   path: "unlock-app"
 }
 
+// Check if installed dependencies match the ones in package-lock.json and re-install if they do not
+const installDeps = {
+  command: "blabla",
+  paths: ["unlock-app", "smart-contracts", "locksmith"]
+}
+
 // tasks are given a path
 module.exports = {
   hooks: {
-    "pre-commit": tasks([svg2Components, lintStaged])
+    "pre-commit": tasks([svg2Components, lintStaged]),
+    "post-checkout": tasks([installDeps])
   }
 }
