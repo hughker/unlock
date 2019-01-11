@@ -24,7 +24,7 @@ contract PublicLock is ILockCore, ERC165, IERC721, IERC721Receiver, Ownable {
   // The struct for a key
   struct Key {
     uint expirationTimestamp;
-    bytes data; // Note: This can be expensive?
+    bytes32 dataHash;
   }
 
   // Events
@@ -143,34 +143,34 @@ contract PublicLock is ILockCore, ERC165, IERC721, IERC721Receiver, Ownable {
   /**
   * @dev Purchase function, public version, with no referrer.
   * @param _recipient address of the recipient of the purchased key
-  * @param _data optional marker for the key
+  * @param _dataHash optional data storage reference for the key
   */
   function purchaseFor(
     address _recipient,
-    bytes _data
+    bytes32 _dataHash
   )
     external
     payable
   {
-    return _purchaseFor(_recipient, address(0), _data);
+    return _purchaseFor(_recipient, address(0), _dataHash);
   }
 
   /**
   * @dev Purchase function, public version, with referrer.
   * @param _recipient address of the recipient of the purchased key
   * @param _referrer address of the user making the referral
-  * @param _data optional marker for the key
+  * @param _dataHash optional data storage reference for the key
   */
   function purchaseForFrom(
     address _recipient,
     address _referrer,
-    bytes _data
+    bytes32 _dataHash
   )
     external
     payable
     hasValidKey(_referrer)
   {
-    return _purchaseFor(_recipient, _referrer, _data);
+    return _purchaseFor(_recipient, _referrer, _dataHash);
   }
 
   /**
@@ -207,7 +207,7 @@ contract PublicLock is ILockCore, ERC165, IERC721, IERC721Receiver, Ownable {
         keyByOwner[_from].expirationTimestamp + previousExpiration - now;
     }
     // Overwite data in all cases
-    keyByOwner[_recipient].data = keyByOwner[_from].data;
+    keyByOwner[_recipient].dataHash = keyByOwner[_from].dataHash;
 
     // Effectively expiring the key for the previous owner
     keyByOwner[_from].expirationTimestamp = now;
@@ -348,9 +348,9 @@ contract PublicLock is ILockCore, ERC165, IERC721, IERC721Receiver, Ownable {
     public
     view
     hasKey(_owner)
-    returns (bytes memory data)
+    returns (bytes32 dataHash)
   {
-    return keyByOwner[_owner].data;
+    return keyByOwner[_owner].dataHash;
   }
 
   /**
@@ -366,6 +366,50 @@ contract PublicLock is ILockCore, ERC165, IERC721, IERC721Receiver, Ownable {
     returns (uint timestamp)
   {
     return keyByOwner[_owner].expirationTimestamp;
+  }
+
+  /**
+  * A function which returns a subset of the keys for this Lock as an array
+  * @param _startIndex the index (in `owners` array) from which we begin retrieving keys
+  */
+  function getKeysByPage(uint _startIndex)
+    external
+    view
+    returns (uint[], bytes32[])
+  {
+    require(outstandingKeys() > 0, "No keys to retrieve");
+    require(_startIndex >= 0 && _startIndex < outstandingKeys(), "Index must be in-bounds");
+    uint endOfPageIndex;
+
+    if (_startIndex + 9 > owners.length) {
+      endOfPageIndex = owners.length - 1;
+    } else {
+      endOfPageIndex = _startIndex + 9;
+    }
+
+    // new temp in-memory array to hold the 10 requested owners:
+    address[] memory ownersByPage = new address[](10);
+    // new temp in-memory arrays to hold the data from each struct field:
+    uint[] memory timestampsArray = new uint[](10);
+    bytes32[] memory dataHashArray = new bytes32[](10);
+
+    Key memory tempKey;
+    uint pageIndex = 0;
+
+    // Build the requested set of owners into a new temporary array:
+    for (uint256 i = _startIndex; i <= endOfPageIndex; i++) {
+      ownersByPage[pageIndex] = owners[i];
+      pageIndex++;
+    }
+
+    // Loop through ownersByPage & build the requested keys into 2 new temporary arrays:
+    for (uint256 n = 0; n < ownersByPage.length; n++) {
+      tempKey = keyByOwner[ownersByPage[n]];
+      timestampsArray[n] = tempKey.expirationTimestamp;
+      dataHashArray[n] = tempKey.dataHash;
+    }
+
+    return(timestampsArray, dataHashArray);
   }
 
   /**
@@ -397,7 +441,7 @@ contract PublicLock is ILockCore, ERC165, IERC721, IERC721Receiver, Ownable {
   /**
   * @dev Purchase function: this lets a user purchase a key from the lock for another user
   * @param _recipient address of the recipient of the purchased key
-  * @param _data optional marker for the key
+  * @param _dataHash optional data storage reference for the key
   * This will fail if
   *  - the keyReleaseMechanism is private
   *  - the keyReleaseMechanism is Approved and the recipient has not been previously approved
@@ -408,7 +452,7 @@ contract PublicLock is ILockCore, ERC165, IERC721, IERC721Receiver, Ownable {
   function _purchaseFor(
     address _recipient,
     address _referrer,
-    bytes memory _data
+    bytes32 _dataHash
   )
     internal
     notSoldOut()
@@ -444,7 +488,7 @@ contract PublicLock is ILockCore, ERC165, IERC721, IERC721Receiver, Ownable {
       keyByOwner[_recipient].expirationTimestamp = previousExpiration + expirationDuration;
     }
     // Overwite data in all cases
-    keyByOwner[_recipient].data = _data;
+    keyByOwner[_recipient].dataHash = _dataHash;
 
     if (discount > 0) {
       unlock.recordConsumedDiscount(discount, tokens);
