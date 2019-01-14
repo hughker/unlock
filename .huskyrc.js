@@ -32,8 +32,8 @@ const lintStaged = {
 
 // Check if installed dependencies match the ones in package-lock.json and re-install if they do not
 const installDeps = {
-  command: "blabla",
-  paths: ["unlock-app", "smart-contracts", "locksmith"]
+  command: "npm run installed-check",
+  paths: ["unlock-app"] // TODO also check "smart-contracts", "locksmith"
 }
 
 // tasks are given a path

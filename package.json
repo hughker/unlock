@@ -27,7 +27,8 @@
   },
   "devDependencies": {
     "ganache-cli": "^6.2.3",
-    "husky": "^1.2.0"
+    "husky": "^1.2.0",
+    "installed-check": "^2.2.0"
   },
   "scripts": {
     "link-parent-bin": "link-parent-bin -c . -s true",
@@ -38,7 +39,8 @@
     "build": "cd smart-contracts && npm run build && cd ../unlock-app && npm run build && cd ../locksmith && npm run build",
     "start": "cd unlock-app && npm run start",
     "deploy-netlify": "./scripts/deploy-netlify.sh",
-    "nuke": "./scripts/nuke.sh"
+    "nuke": "./scripts/nuke.sh",
+    "installed-check": "installed-check"
   },
   "repository": {
     "type": "git",
