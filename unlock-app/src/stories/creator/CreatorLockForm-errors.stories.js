@@ -2,6 +2,8 @@ import { Provider } from 'react-redux'
 import { action } from '@storybook/addon-actions'
 import React from 'react'
 import { storiesOf } from '@storybook/react'
+import uniqid from 'uniqid'
+
 import CreatorLockForm from '../../components/creator/CreatorLockForm'
 import createUnlockStore from '../../createUnlockStore'
 
@@ -14,12 +16,20 @@ const store = createUnlockStore({
   },
 })
 
+const lock = {
+  name: 'New Lock',
+  address: uniqid(), // for new locks, we don't have an address, so use a temporary one
+  expirationDuration: 30 * 86400,
+  keyPrice: '10000000000000000',
+  maxNumberOfKeys: 10,
+}
+
 storiesOf('CreatorLockForm/invalid', module)
   .addDecorator(getStory => <Provider store={store}>{getStory()}</Provider>)
   .add('missing name', () => {
     return (
       <CreatorLockForm
-        name=""
+        lock={{ ...lock, name: '' }}
         valid={false}
         hideAction={action('hide')}
         setError={action('setError')}
@@ -30,7 +40,7 @@ storiesOf('CreatorLockForm/invalid', module)
   .add('invalid duration', () => {
     return (
       <CreatorLockForm
-        expirationDuration={-1}
+        lock={{ ...lock, expirationDuration: -1 }}
         valid={false}
         hideAction={action('hide')}
         setError={action('setError')}
@@ -41,7 +51,7 @@ storiesOf('CreatorLockForm/invalid', module)
   .add('invalid num keys', () => {
     return (
       <CreatorLockForm
-        maxNumberOfKeys={-1}
+        lock={{ ...lock, maxNumberOfKeys: -2 }}
         valid={false}
         hideAction={action('hide')}
         setError={action('setError')}
@@ -52,7 +62,7 @@ storiesOf('CreatorLockForm/invalid', module)
   .add('invalid key price', () => {
     return (
       <CreatorLockForm
-        keyPrice="-1"
+        lock={{ ...lock, keyPrice: '-1' }}
         valid={false}
         hideAction={action('hide')}
         setError={action('setError')}

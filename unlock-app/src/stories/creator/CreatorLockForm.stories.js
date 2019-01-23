@@ -38,7 +38,7 @@ storiesOf('CreatorLockForm', module)
     }
     return (
       <CreatorLockForm
-        {...lock}
+        lock={lock}
         createLock={action('createLock')}
         hideAction={action('hide')}
         setError={action('setError')}

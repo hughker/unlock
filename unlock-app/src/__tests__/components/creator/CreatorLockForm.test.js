@@ -1,5 +1,6 @@
 import React from 'react'
 import * as rtl from 'react-testing-library'
+import uniqid from 'uniqid'
 
 import { CreatorLockForm } from '../../../components/creator/CreatorLockForm'
 import {
@@ -16,11 +17,19 @@ describe('CreatorLockForm', () => {
   let hideAction
   let setError
   let resetError
-  function makeLockForm(values = {}) {
+  function makeLockForm(values = {}, props = {}) {
     createLock = jest.fn()
     hideAction = jest.fn()
     setError = jest.fn()
     resetError = jest.fn()
+    const lock = {
+      name: 'New Lock',
+      address: uniqid(), // for new locks, we don't have an address, so use a temporary one
+      expirationDuration: 30 * 86400,
+      keyPrice: '10000000000000000',
+      maxNumberOfKeys: 10,
+      ...values,
+    }
     const ret = rtl.render(
       <CreatorLockForm
         account={{ address: 'hi' }}
@@ -29,7 +38,8 @@ describe('CreatorLockForm', () => {
         hideAction={hideAction}
         setError={setError}
         resetError={resetError}
-        {...values}
+        lock={lock}
+        {...props}
       />
     )
     // * (regarding the convert prop)
@@ -58,7 +68,7 @@ describe('CreatorLockForm', () => {
 
   describe('things that should not fail', () => {
     it('properly handle unlimited keys when editing', () => {
-      const wrapper = makeLockForm({ maxNumberOfKeys: 0, convert: true })
+      const wrapper = makeLockForm({ maxNumberOfKeys: 0 }, { convert: true })
 
       const submit = wrapper.getByText('Submit')
       expect(submit).not.toBeNull()
@@ -270,8 +280,8 @@ describe('CreatorLockForm', () => {
 
       expect(wrapper.getByValue('0.01').dataset.valid).toBe('true')
     })
-    it('submit button is enabled and activates on submit', () => {
-      const wrapper = makeLockForm({ convert: true }) // remove the "convert" prop when it is no longer necessary
+    it.only('submit button is enabled and activates on submit', () => {
+      const wrapper = makeLockForm({}, { convert: true }) // remove the "convert" prop when it is no longer necessary
 
       const submit = wrapper.getByText('Submit')
       expect(submit).not.toBeNull()

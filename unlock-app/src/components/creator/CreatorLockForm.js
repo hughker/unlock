@@ -34,28 +34,23 @@ import { INFINITY, UNLIMITED_KEYS_COUNT } from '../../constants'
 export class CreatorLockForm extends React.Component {
   constructor(props, context) {
     super(props, context)
-    let expirationDuration = props.expirationDuration
-    let keyPrice = props.keyPrice
-    let maxNumberOfKeys = props.maxNumberOfKeys
+    const lock = { ...props.lock }
     if (props.convert) {
-      keyPrice = Web3Utils.fromWei(keyPrice, props.keyPriceCurrency)
-      expirationDuration = expirationDuration / props.expirationDurationUnit
+      lock.keyPrice = Web3Utils.fromWei(lock.keyPrice, props.keyPriceCurrency)
+      lock.expirationDuration =
+        lock.expirationDuration / props.expirationDurationUnit
       // unlimited keys is represented differently in the frontend and the backend,
       // so when a lock has `maxNumberOfKeys` set to UNLIMITED_KEYS_COUNT,
       // convert it to infinity symbol for frontend display
-      if (maxNumberOfKeys === UNLIMITED_KEYS_COUNT) {
-        maxNumberOfKeys = INFINITY
+      if (lock.maxNumberOfKeys === UNLIMITED_KEYS_COUNT) {
+        lock.maxNumberOfKeys = INFINITY
       }
     }
     this.state = {
-      expirationDuration: expirationDuration,
+      lock,
       expirationDurationUnit: props.expirationDurationUnit, // Days
-      keyPrice: keyPrice,
       keyPriceCurrency: props.keyPriceCurrency,
-      maxNumberOfKeys,
-      unlimitedKeys: maxNumberOfKeys === INFINITY,
-      name: props.name,
-      address: props.address,
+      unlimitedKeys: lock.maxNumberOfKeys === INFINITY,
     }
     const { validityState: valid, errors } = this.formValidity(this.state)
     this.state.valid = valid
@@ -88,7 +83,7 @@ export class CreatorLockForm extends React.Component {
       'name',
     ].reduce((fieldValidity, field) => {
       // invalidError will either be the error name or false
-      const invalidError = this.validate(field, state[field])
+      const invalidError = this.validate(field, state.lock[field])
       fieldValidity[field] = !invalidError
       if (!invalidError) {
         return fieldValidity
@@ -132,24 +127,22 @@ export class CreatorLockForm extends React.Component {
   saveLock() {
     const { account, createLock } = this.props
     const {
-      expirationDuration,
-      expirationDurationUnit,
-      keyPriceCurrency,
-      maxNumberOfKeys,
+      lock,
       unlimitedKeys,
-      keyPrice,
-      name,
-      address,
+      keyPriceCurrency,
+      expirationDurationUnit,
     } = this.state
 
-    const lock = {
-      address: address,
-      name: name,
-      expirationDuration: expirationDuration * expirationDurationUnit,
-      keyPrice: Web3Utils.toWei(keyPrice.toString(10), keyPriceCurrency),
-      maxNumberOfKeys: unlimitedKeys ? UNLIMITED_KEYS_COUNT : maxNumberOfKeys,
-      owner: account.address,
-    }
+    console.log(lock, 'out')
+    lock.expirationDuration = lock.expirationDuration * expirationDurationUnit
+    lock.keyPrice = Web3Utils.toWei(
+      lock.keyPrice.toString(10),
+      keyPriceCurrency
+    )
+    lock.maxNumberOfKeys = unlimitedKeys
+      ? UNLIMITED_KEYS_COUNT
+      : lock.maxNumberOfKeys
+    lock.owner = account.address
 
     createLock(lock)
   }
@@ -212,10 +205,7 @@ export class CreatorLockForm extends React.Component {
   render() {
     const { pending } = this.props
     const {
-      expirationDuration,
-      maxNumberOfKeys,
-      keyPrice,
-      name,
+      lock: { expirationDuration, maxNumberOfKeys, keyPrice, name },
       unlimitedKeys,
       valid,
     } = this.state
@@ -292,29 +282,27 @@ export class CreatorLockForm extends React.Component {
 
 CreatorLockForm.propTypes = {
   account: UnlockPropTypes.account.isRequired,
+  lock: UnlockPropTypes.lock,
   hideAction: PropTypes.func.isRequired,
   createLock: PropTypes.func.isRequired,
   setError: PropTypes.func.isRequired,
   resetError: PropTypes.func.isRequired,
-  expirationDuration: PropTypes.number,
   expirationDurationUnit: PropTypes.number,
-  keyPrice: PropTypes.string,
   keyPriceCurrency: PropTypes.string,
-  maxNumberOfKeys: PropTypes.oneOfType([PropTypes.number, PropTypes.string]), // string is for '∞'
-  name: PropTypes.string,
-  address: PropTypes.string,
   pending: PropTypes.bool,
   convert: PropTypes.bool, // this prop is to allow form field validation tests to test edge cases
 }
 
 CreatorLockForm.defaultProps = {
-  expirationDuration: 30 * 86400,
+  lock: {
+    name: 'New Lock',
+    address: uniqid(), // for new locks, we don't have an address, so use a temporary one
+    expirationDuration: 30 * 86400,
+    keyPrice: '10000000000000000',
+    maxNumberOfKeys: 10,
+  },
   expirationDurationUnit: 86400, // Days
-  keyPrice: '10000000000000000',
   keyPriceCurrency: 'ether',
-  maxNumberOfKeys: 10,
-  name: 'New Lock',
-  address: uniqid(), // for new locks, we don't have an address, so use a temporary one
   convert: true,
   pending: false,
 }
