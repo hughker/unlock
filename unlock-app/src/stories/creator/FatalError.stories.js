@@ -20,3 +20,6 @@ storiesOf('FatalError', module)
   .add('Account missing', () => {
     return <FatalError.MissingAccount />
   })
+  .add('Unsupported Wallet', () => {
+    return <FatalError.UnsupportedWallet yourWallet="American Express" />
+  })

@@ -112,10 +112,29 @@ export const MissingAccount = () => (
   </DefaultError>
 )
 
+export const UnsupportedWallet = ({ yourWallet }) => (
+  <DefaultError
+    title="Unsupported wallet"
+    illustration="/static/images/illustrations/wallet.svg"
+  >
+    <p>
+      It looks like you’re using an upsupported Crypto wallet we have detected
+      as <pre>{yourWallet}</pre>
+      We recommmend <a href="https://metamask.io/">Metamask</a> browser
+      extension or <a href="https://www.opera.com/">Opera</a> on mobile.
+    </p>
+  </DefaultError>
+)
+
+UnsupportedWallet.propTypes = {
+  yourWallet: PropTypes.string.isRequired,
+}
+
 export const mapping = {
   FATAL_MISSING_PROVIDER: MissingProvider,
   FATAL_NO_USER_ACCOUNT: MissingAccount,
   FATAL_WRONG_NETWORK: WrongNetwork,
+  FATAL_UNSUPPORTED_WALLET: UnsupportedWallet,
   '*': DefaultError,
 }
 
@@ -124,4 +143,5 @@ export default {
   WrongNetwork,
   MissingProvider,
   MissingAccount,
+  UnsupportedWallet,
 }
