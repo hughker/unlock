@@ -74,6 +74,12 @@ const Message = styled.div`
   }
 `
 
+const Pre = styled.span`
+  whitespace: preserve;
+  font-family: Courier;
+  background-color: var(--lightgrey);
+`
+
 export const WrongNetwork = ({ currentNetwork, requiredNetwork }) => (
   <DefaultError
     title="Network mismatch"
@@ -119,9 +125,9 @@ export const UnsupportedWallet = ({ yourWallet }) => (
   >
     <p>
       It looks like you’re using an upsupported Crypto wallet we have detected
-      as <pre>{yourWallet}</pre>
-      We recommmend <a href="https://metamask.io/">Metamask</a> browser
-      extension or <a href="https://www.opera.com/">Opera</a> on mobile.
+      as <Pre>{yourWallet}</Pre>. We recommmend{' '}
+      <a href="https://metamask.io/">Metamask</a> browser extension or{' '}
+      <a href="https://www.opera.com/">Opera</a> on mobile.
     </p>
   </DefaultError>
 )
