@@ -15,7 +15,7 @@
     "babel-register": "^6.26.0",
     "bignumber.js": "^8.0.2",
     "ethereumjs-units": "^0.2.0",
-    "openzeppelin-eth": "^2.0.2",
+    "openzeppelin-eth": "^2.1.2",
     "shelljs": "^0.8.3",
     "solhint": "^1.4.0",
     "truffle": "^4.1.15",
