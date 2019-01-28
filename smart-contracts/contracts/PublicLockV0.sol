@@ -175,7 +175,7 @@ contract PublicLock is ILockCore, ERC165, IERC721, IERC721Receiver, Ownable {
     expirationDuration = _expirationDuration;
     keyPrice = _keyPrice;
     maxNumberOfKeys = _maxNumberOfKeys;
-    lockVersion = 0; // make sure we bump this with each version change
+    publicLockVersion = 0; // make sure we bump this with each version change
   }
 
   /**
@@ -188,7 +188,7 @@ contract PublicLock is ILockCore, ERC165, IERC721, IERC721Receiver, Ownable {
     onlyOwner
   {
     emit Killed(publicLockVersion, msg.sender, _to);
-    selfDestruct(_to);
+    selfdestruct(_to);
   }
 
   /**
