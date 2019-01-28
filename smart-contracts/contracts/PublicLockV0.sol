@@ -42,6 +42,12 @@ contract PublicLock is ILockCore, ERC165, IERC721, IERC721Receiver, Ownable {
     uint _amount
     );
 
+  event Killed(
+    uint indexed _version,
+    address _owner,
+    address _recipient
+  );
+
   // Fields
   // Unlock Protocol address
   // TODO: should we make that private/internal?
@@ -181,7 +187,7 @@ contract PublicLock is ILockCore, ERC165, IERC721, IERC721Receiver, Ownable {
     external
     onlyOwner
   {
-    emit Killed(sender, _to);
+    emit Killed(publicLockVersion, msg.sender, _to);
     selfDestruct(_to);
   }
 
@@ -196,7 +202,6 @@ contract PublicLock is ILockCore, ERC165, IERC721, IERC721Receiver, Ownable {
   )
     external
     payable
-    onlyAlive
   {
     return _purchaseFor(_recipient, address(0), _data);
   }
@@ -214,7 +219,6 @@ contract PublicLock is ILockCore, ERC165, IERC721, IERC721Receiver, Ownable {
   )
     external
     payable
-    onlyAlive
     hasValidKey(_referrer)
   {
     return _purchaseFor(_recipient, _referrer, _data);
@@ -231,7 +235,6 @@ contract PublicLock is ILockCore, ERC165, IERC721, IERC721Receiver, Ownable {
   )
     external
     payable
-    onlyAlive
     notSoldOut()
     hasValidKey(_from)
     onlyKeyOwnerOrApproved(_tokenId)
@@ -317,7 +320,6 @@ contract PublicLock is ILockCore, ERC165, IERC721, IERC721Receiver, Ownable {
   )
     external
     payable
-    onlyAlive
     onlyKeyOwner(_tokenId)
   {
     require(_approved != address(0));
