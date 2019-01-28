@@ -4,7 +4,7 @@ const Web3Utils = require('web3-utils')
 const deployLocks = require('../helpers/deployLocks')
 const Unlock = artifacts.require('../Unlock.sol')
 
-let unlock, locks, owner
+let unlock, locks, owner, txObj
 
 contract('Lock', accounts => {
   before(async () => {
@@ -21,7 +21,7 @@ contract('Lock', accounts => {
         await locks['FIRST'].kill(accounts[6], {
           from: accounts[6]
         })
-        assert.fail('Expected Revert')
+        assert.fail()
       } catch (error) {
         assert.equal(
           error.message,
@@ -30,28 +30,56 @@ contract('Lock', accounts => {
       }
     })
 
-    it.skip('should allow the owner to kill the lock', async () => {
+    it('should allow the owner to kill the lock', async () => {
+      owner = await locks['FIRST'].owner()
       assert.equal(owner, accounts[0])
-      let txObj = await locks['FIRST'].kill(owner, { from: owner })
-      console.log(txObj.logs)
-      assert.equal(txObj.logs[0], true)
+      txObj = await locks['FIRST'].kill(owner, { from: accounts[0] })
+      console.log(txObj.logs[0])
+      assert.equal(txObj.logs[0], 11)
     })
 
-    it('should trigger the Killed event', async () => {})
+    it('should trigger the Killed event', async () => {
+      assert.equal(txObj.logs[0].event, 'Killed')
+    })
 
-    it('should fail if anyone trys to purchase a key', async () => {})
+    it('should fail if anyone trys to purchase a key', async () => {
+      try {
+        await locks[`FIRST`].purchaseFor(accounts[3], 'Nick', {
+          from: accounts[1]
+        })
+        assert.fail()
+      } catch (error) {
+        assert.equal(
+          error.message,
+          'VM Exception while processing transaction: revert'
+        )
+      }
+    })
 
-    it('should fail if anyone trys to purchase a key for someone else', async () => {})
+    it('should fail if anyone trys to purchase a key for someone else', async () => {
+      try {
+        await locks[`FIRST`].purchaseForFrom(accounts[3], accounts[4], 'Nick', {
+          from: accounts[1]
+        })
+        assert.fail()
+      } catch (error) {
+        assert.equal(
+          error.message,
+          'VM Exception while processing transaction: revert'
+        )
+      }
+    })
 
-    // ? only worried about payable
-    // purchaseFor
-    // purchaseForFrom
-    // transferFrom
-    // approve
-    it('should fail if anyone trys to transfer a key', async () => {})
-
-    it('should fail if anyone trys to call approve()', async () => {})
-
-    it('should throw an exception if ether is sent to the fallback', async () => {})
+    it.skip('should throw an exception if ether is sent to the fallback', async () => {
+      try {
+        locks['FIRST'].send(1, `Ether`)
+        assert.fail()
+      } catch (error) {
+        assert.equal(
+          error.message,
+          'VM Exception while processing transaction: revert'
+        )
+      }
+    })
   })
 })
