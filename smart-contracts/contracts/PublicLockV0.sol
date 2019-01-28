@@ -65,9 +65,6 @@ contract PublicLock is ILockCore, ERC165, IERC721, IERC721Receiver, Ownable {
   // The version number for this lock contract
   uint public publicLockVersion;
 
-  // used to check whether contract has had selfDestruct called on it, which sets all values to 0
-  bool public isAlive;
-
   // Keys
   // Each owner can have at most exactly one key
   // TODO: could we use public here? (this could be confusing though because it getter will
@@ -157,12 +154,6 @@ contract PublicLock is ILockCore, ERC165, IERC721, IERC721Receiver, Ownable {
     _;
   }
 
-  // Ensure the lock has not been killed
-  modifier onlyAlive() {
-    require(isAlive == true, "Contract has been killed");
-    _;
-  }
-
   // Constructor
   constructor(
     address _owner,
@@ -179,7 +170,6 @@ contract PublicLock is ILockCore, ERC165, IERC721, IERC721Receiver, Ownable {
     keyPrice = _keyPrice;
     maxNumberOfKeys = _maxNumberOfKeys;
     lockVersion = 0; // make sure we bump this with each version change
-    isAlive = true;
   }
 
   /**
