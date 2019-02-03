@@ -31,11 +31,7 @@ export default function walletMiddleware({ getState, dispatch }) {
   // Buffer of actions waiting for connection
   const actions = []
 
-  const walletService = new WalletService(
-    config.providers,
-    setTimeout,
-    config.isServer
-  )
+  const walletService = new WalletService(config.providers, config.isServer)
 
   /**
    * When an account was changed, we dispatch the corresponding action
